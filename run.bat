@@ -13,16 +13,13 @@ if exist "C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot" (
 set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 echo Using Java: %JAVA_HOME%
+"%JAVA_HOME%\bin\java.exe" -version
 
-if exist "target\return-hub-0.0.1-SNAPSHOT.jar" (
-    echo Starting pre-compiled JAR (Instant Startup in ~2 seconds)...
-    start http://localhost:8080
-    "%JAVA_HOME%\bin\java.exe" -jar target\return-hub-0.0.1-SNAPSHOT.jar
-) else (
-    echo Building JAR with Maven first...
-    call mvnw.cmd clean package -DskipTests
-    start http://localhost:8080
-    "%JAVA_HOME%\bin\java.exe" -jar target\return-hub-0.0.1-SNAPSHOT.jar
+echo Checking port 8080...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8080 ^| findstr LISTENING') do (
+    echo Freeing port 8080 (PID %%a)...
+    taskkill /F /PID %%a >nul 2>&1
 )
 
+call mvnw.cmd spring-boot:run
 pause

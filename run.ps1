@@ -14,4 +14,10 @@ $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 Write-Host "Using Java: $env:JAVA_HOME" -ForegroundColor Green
 & "$env:JAVA_HOME\bin\java.exe" -version
 
+# Free port 8080 if lingering from a previous run
+Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue | ForEach-Object {
+    Write-Host "Freeing port 8080 (Killing PID $($_.OwningProcess))..." -ForegroundColor Yellow
+    Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
+}
+
 & .\mvnw.cmd spring-boot:run

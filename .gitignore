@@ -35,3 +35,4 @@ build/
 ### Uploads & Logs ###
 uploads/
 *.log
+*.exe
