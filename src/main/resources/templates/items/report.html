@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head(${formTitle})}"></head>
+
+<body>
+
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <span th:if="${formType == 'LOST'}" class="item-badge-type badge-lost" style="position: static; font-size: 0.85rem;">Lost Report</span>
+                        <span th:if="${formType == 'FOUND'}" class="item-badge-type badge-found" style="position: static; font-size: 0.85rem;">Found Report</span>
+                    </div>
+                    <h2 th:text="${formTitle}">Report an Item</h2>
+                    <p>Please provide detailed and accurate information to help reunite the item with its rightful owner.</p>
+                </div>
+
+                <form th:action="${isEdit ? '/items/' + itemDto.id + '/edit' : '/items/report'}"
+                      th:object="${itemDto}"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    <!-- Hidden Type field -->
+                    <input type="hidden" th:field="*{type}" />
+                    <input type="hidden" th:if="${isEdit}" th:field="*{id}" />
+
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label class="form-label" for="title">Item Title <span class="required">*</span></label>
+                        <input type="text" id="title" th:field="*{title}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''"
+                               placeholder="e.g., Black Apple iPhone 14 Pro with Navy Blue Silicone Case" />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error</div>
+                        <div class="form-hint">Be specific with make, model, color, and distinguishing attributes.</div>
+                    </div>
+
+                    <!-- Category & Date Row -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="category">Category <span class="required">*</span></label>
+                            <select id="category" th:field="*{category}"
+                                    class="form-control"
+                                    th:classappend="${#fields.hasErrors('category')} ? 'is-invalid' : ''">
+                                <option value="">Select a Category</option>
+                                <option th:each="cat : ${allCategories}" th:value="${cat}" th:text="${cat.displayName}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}" th:errors="*{category}">Category error</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="eventDate">
+                                <span th:text="${formType == 'LOST' ? 'Date Lost' : 'Date Found'}">Date</span>
+                                <span class="required">*</span>
+                            </label>
+                            <input type="date" id="eventDate" th:field="*{eventDate}"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('eventDate')} ? 'is-invalid' : ''" />
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('eventDate')}" th:errors="*{eventDate}">Date error</div>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group">
+                        <label class="form-label" for="location">Location Lost or Found <span class="required">*</span></label>
+                        <input type="text" id="location" th:field="*{location}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('location')} ? 'is-invalid' : ''"
+                               placeholder="e.g., Central Library, 2nd Floor Study Room, or Downtown Subway Station" />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('location')}" th:errors="*{location}">Location error</div>
+                        <div class="form-hint">Specify the building, room, landmark, or intersection where the item was lost or found.</div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label class="form-label" for="description">Detailed Description <span class="required">*</span></label>
+                        <textarea id="description" th:field="*{description}" rows="5"
+                                  class="form-control"
+                                  th:classappend="${#fields.hasErrors('description')} ? 'is-invalid' : ''"
+                                  placeholder="Provide a thorough description of the item including brand, color, physical condition, unique scratches, or accessories. If you found the item, you may omit one or two secret details to test rightful claimants!"></textarea>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</div>
+                    </div>
+
+                    <!-- Optional Image Upload & URL -->
+                    <div class="form-group">
+                        <label class="form-label">Item Image (Optional)</label>
+                        <div class="file-upload-zone" onclick="document.getElementById('imageFile').click();">
+                            <i class="fas fa-cloud-arrow-up"></i>
+                            <div style="font-weight: 600; color: var(--slate-700); margin-bottom: 0.25rem;">
+                                Click to browse or drop an image file
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--slate-400);">
+                                Supported formats: JPG, PNG, WEBP (Max 5MB)
+                            </div>
+                            <input type="file" id="imageFile" name="imageFile" accept="image/*" style="display: none;" />
+                        </div>
+
+                        <div id="imagePreviewBox" class="image-preview-box" th:style="${existingImageUrl != null ? 'display:block;' : ''}">
+                            <img id="imagePreview" th:src="${existingImageUrl != null ? existingImageUrl : ''}" alt="Image Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+                        </div>
+
+                        <div style="margin-top: 0.75rem;">
+                            <label class="form-label" for="imageUrl" style="font-size: 0.825rem; color: var(--slate-600);">Or provide an external Image URL:</label>
+                            <input type="url" id="imageUrl" th:field="*{imageUrl}" class="form-control" placeholder="https://example.com/image.jpg" />
+                        </div>
+                    </div>
+
+                    <!-- Private Contact Info Section -->
+                    <div style="background-color: var(--slate-50); border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.75rem; margin-bottom: 1.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; color: var(--primary-800); font-weight: 700;">
+                            <i class="fas fa-shield-halved"></i>
+                            <span>Private Contact Information</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--slate-600); margin-bottom: 1.25rem;">
+                            <strong>Privacy Guarantee:</strong> This contact information is kept private. It will NOT be shown publicly on the item listing. It is only made accessible to a claimant after you review and approve their claim.
+                        </p>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="contactPhone">Contact Phone Number <span class="required">*</span></label>
+                                <input type="text" id="contactPhone" th:field="*{contactPhone}"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('contactPhone')} ? 'is-invalid' : ''"
+                                       placeholder="+1 (555) 000-0000" />
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('contactPhone')}" th:errors="*{contactPhone}">Phone error</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="contactEmail">Contact Email Address <span class="required">*</span></label>
+                                <input type="email" id="contactEmail" th:field="*{contactEmail}"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('contactEmail')} ? 'is-invalid' : ''"
+                                       placeholder="you@example.com" />
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('contactEmail')}" th:errors="*{contactEmail}">Email error</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" for="additionalContactInfo">Handoff Instructions / Additional Notes (Optional)</label>
+                            <input type="text" id="additionalContactInfo" th:field="*{additionalContactInfo}"
+                                   class="form-control"
+                                   placeholder="e.g., Available weekdays after 5 PM, prefer meeting near City Center" />
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; align-items: center; margin-top: 1.5rem;">
+                        <a th:href="@{/my-reports}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary" style="min-width: 180px;">
+                            <i class="fas fa-paper-plane"></i>
+                            <span th:text="${isEdit ? 'Save Changes' : (formType == 'FOUND' ? 'Publish Found Item' : 'Publish Lost Item')}">Submit</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

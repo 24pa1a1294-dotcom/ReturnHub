@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Claim Item - ' + ${item.title})}"></head>
+
+<body>
+
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card">
+                <!-- Item Summary Header -->
+                <div style="background-color: var(--primary-50); border: 1px solid var(--primary-200); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1.25rem;">
+                    <div style="width: 4rem; height: 4rem; border-radius: var(--radius); background-color: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--primary-200);">
+                        <i th:class="${item.category.iconClass}" style="font-size: 1.85rem; color: var(--primary-600);"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--primary-700); margin-bottom: 0.2rem;">
+                            Filing Claim for <span th:text="${item.type.displayName}">Item</span>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--slate-900); margin-bottom: 0.25rem;" th:text="${item.title}">Item Title</h3>
+                        <div style="font-size: 0.85rem; color: var(--slate-600); display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <span><i class="fas fa-location-dot" style="color: var(--primary-500);"></i> <span th:text="${item.location}">Location</span></span>
+                            <span><i class="fas fa-calendar" style="color: var(--primary-500);"></i> Reported <span th:text="${#temporals.format(item.eventDate, 'MMM dd, yyyy')}">Date</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-header" style="text-align: left; margin-bottom: 1.5rem;">
+                    <h2>Proof of Ownership</h2>
+                    <p>To ensure items are returned only to their legitimate owners, please provide specific verification details.</p>
+                </div>
+
+                <form th:action="@{/items/{id}/claim(id=${item.id})}" th:object="${claimDto}" method="post">
+                    <!-- Hidden Item ID -->
+                    <input type="hidden" th:field="*{itemId}" />
+
+                    <!-- Proof Description -->
+                    <div class="form-group">
+                        <label class="form-label" for="proofDescription">
+                            Identifying Proof of Ownership <span class="required">*</span>
+                        </label>
+                        <textarea id="proofDescription" th:field="*{proofDescription}" rows="5"
+                                  class="form-control"
+                                  th:classappend="${#fields.hasErrors('proofDescription')} ? 'is-invalid' : ''"
+                                  placeholder="Describe details only the real owner would know: e.g., lock screen wallpaper, serial numbers, case branding, engravings, specific cards or items inside the wallet/bag, receipt details, or distinctive scratches."></textarea>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('proofDescription')}" th:errors="*{proofDescription}">Proof error</div>
+                        <div class="form-hint">
+                            <i class="fas fa-shield-alt" style="color: var(--primary-600);"></i>
+                            This information will only be sent to the finder/reporter for verification.
+                        </div>
+                    </div>
+
+                    <!-- Date Lost -->
+                    <div class="form-group">
+                        <label class="form-label" for="dateLost">
+                            Approximate Date When You Lost This Item <span class="required">*</span>
+                        </label>
+                        <input type="date" id="dateLost" th:field="*{dateLost}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('dateLost')} ? 'is-invalid' : ''" />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('dateLost')}" th:errors="*{dateLost}">Date error</div>
+                    </div>
+
+                    <!-- Claimant Contact Info -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="contactPhone">Your Phone Number <span class="required">*</span></label>
+                            <input type="text" id="contactPhone" th:field="*{contactPhone}"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('contactPhone')} ? 'is-invalid' : ''"
+                                   placeholder="+1 (555) 000-0000" />
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('contactPhone')}" th:errors="*{contactPhone}">Phone error</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="contactEmail">Your Email Address <span class="required">*</span></label>
+                            <input type="email" id="contactEmail" th:field="*{contactEmail}"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('contactEmail')} ? 'is-invalid' : ''"
+                                   placeholder="you@example.com" />
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('contactEmail')}" th:errors="*{contactEmail}">Email error</div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Message -->
+                    <div class="form-group">
+                        <label class="form-label" for="message">Message to the Reporter (Optional)</label>
+                        <textarea id="message" th:field="*{message}" rows="3"
+                                  class="form-control"
+                                  th:classappend="${#fields.hasErrors('message')} ? 'is-invalid' : ''"
+                                  placeholder="Add any polite note or convenient handoff times/locations."></textarea>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('message')}" th:errors="*{message}">Message error</div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; align-items: center; margin-top: 2rem;">
+                        <a th:href="@{/items/{id}(id=${item.id})}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary" style="min-width: 180px;">
+                            <i class="fas fa-check-to-slot"></i> Submit Claim
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

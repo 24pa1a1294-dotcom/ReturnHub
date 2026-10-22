@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - Return Hub' : 'Return Hub - Lost and Found Community'}">Return Hub</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <header th:fragment="navbar" class="navbar">
+        <div class="container nav-wrapper">
+            <a th:href="@{/}" class="brand-logo">
+                <div class="brand-icon">
+                    <i class="fas fa-arrow-rotate-left"></i>
+                </div>
+                <span>Return<span style="color: var(--primary-600)">Hub</span></span>
+            </a>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <nav class="nav-menu" id="navMenu">
+                <a th:href="@{/}" class="nav-link">
+                    <i class="fas fa-house"></i> Home
+                </a>
+                <a th:href="@{/lost-items}" class="nav-link">
+                    <i class="fas fa-search-location"></i> Lost Items
+                </a>
+                <a th:href="@{/found-items}" class="nav-link">
+                    <i class="fas fa-hand-holding-heart"></i> Found Items
+                </a>
+
+                <div class="nav-actions">
+                    <a th:href="@{/items/report/lost}" class="btn btn-lost btn-sm">
+                        <i class="fas fa-plus"></i> Report Lost
+                    </a>
+                    <a th:href="@{/items/report/found}" class="btn btn-found btn-sm">
+                        <i class="fas fa-plus"></i> Report Found
+                    </a>
+
+                    <!-- Authenticated State -->
+                    <div sec:authorize="isAuthenticated()" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <a th:href="@{/my-reports}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-clipboard-list"></i> My Reports
+                        </a>
+                        <div class="user-menu-btn" th:if="${currentUser != null}">
+                            <i class="fas fa-user-circle"></i>
+                            <span th:text="${currentUser.fullName}">User</span>
+                        </div>
+                        <form th:action="@{/logout}" method="post" style="display: inline; margin: 0;">
+                            <button type="submit" class="btn btn-outline btn-sm" title="Log out">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Anonymous State -->
+                    <div sec:authorize="isAnonymous()" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <a th:href="@{/login}" class="btn btn-outline btn-sm">Log in</a>
+                        <a th:href="@{/register}" class="btn btn-primary btn-sm">Register</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Flash Messages Fragment -->
+    <div th:fragment="alerts" class="container" style="margin-top: 1.5rem;">
+        <div th:if="${successMessage}" class="alert alert-success">
+            <div>
+                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                <span th:text="${successMessage}">Success message</span>
+            </div>
+            <button type="button" class="alert-close">&times;</button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger">
+            <div>
+                <i class="fas fa-exclamation-circle" style="margin-right: 0.5rem;"></i>
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+            <button type="button" class="alert-close">&times;</button>
+        </div>
+
+        <div th:if="${param.logout}" class="alert alert-info">
+            <div>
+                <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                <span>You have been successfully logged out.</span>
+            </div>
+            <button type="button" class="alert-close">&times;</button>
+        </div>
+
+        <div th:if="${param.registered}" class="alert alert-success">
+            <div>
+                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                <span>Registration complete! Please enter your credentials to log in.</span>
+            </div>
+            <button type="button" class="alert-close">&times;</button>
+        </div>
+    </div>
+
+    <!-- Footer Fragment -->
+    <footer th:fragment="footer" class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>
+                        <i class="fas fa-arrow-rotate-left" style="color: var(--primary-400)"></i>
+                        Return Hub
+                    </h3>
+                    <p>
+                        A secure, community-powered lost and found platform. We help reunite people with their belongings through verified claiming and privacy protection.
+                    </p>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Browse</h4>
+                    <ul class="footer-links">
+                        <li><a th:href="@{/}">Home</a></li>
+                        <li><a th:href="@{/lost-items}">Lost Directory</a></li>
+                        <li><a th:href="@{/found-items}">Found Directory</a></li>
+                        <li><a th:href="@{/items/report/lost}">Report Lost Item</a></li>
+                        <li><a th:href="@{/items/report/found}">Report Found Item</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Account</h4>
+                    <ul class="footer-links">
+                        <li sec:authorize="isAnonymous()"><a th:href="@{/login}">Log In</a></li>
+                        <li sec:authorize="isAnonymous()"><a th:href="@{/register}">Register</a></li>
+                        <li sec:authorize="isAuthenticated()"><a th:href="@{/my-reports}">My Reports & Claims</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Safe Return Promise</h4>
+                    <p style="font-size: 0.85rem; color: var(--slate-400); line-height: 1.6;">
+                        <i class="fas fa-shield-halved" style="color: var(--primary-400); margin-right: 0.35rem;"></i>
+                        Private contact information is never shown publicly. Only verified claim holders receive reporter contacts upon approval.
+                    </p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 Return Hub. Built with Spring Boot, Thymeleaf, and MySQL.</p>
+                <p>Designed for secure community reunions.</p>
+            </div>
+        </div>
+        <!-- Main JS -->
+        <script th:src="@{/js/main.js}"></script>
+    </footer>
+
+</body>
+</html>

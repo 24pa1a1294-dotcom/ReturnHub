@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
+
+<body>
+
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="main-content">
+        <!-- Hero Section with Search -->
+        <section class="hero">
+            <div class="container hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>Privacy-Protected Lost & Found Platform</span>
+                </div>
+                <h1 class="hero-title">Lost It? Found It? Let's Return It.</h1>
+                <p class="hero-subtitle">
+                    Return Hub connects searchers and finders with verified ownership claims, protecting private contact details every step of the way.
+                </p>
+
+                <!-- Search Bar Card -->
+                <div class="hero-search-card">
+                    <form th:action="@{/search}" method="get" class="hero-search-form">
+                        <div class="search-field">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="keyword" class="search-input" placeholder="Search by title, location, or description...">
+                        </div>
+
+                        <div class="search-field">
+                            <i class="fas fa-filter"></i>
+                            <select name="type" class="search-select">
+                                <option value="">All Types</option>
+                                <option value="LOST">Lost Items</option>
+                                <option value="FOUND">Found Items</option>
+                            </select>
+                        </div>
+
+                        <div class="search-field">
+                            <i class="fas fa-tag"></i>
+                            <select name="category" class="search-select">
+                                <option value="">All Categories</option>
+                                <option th:each="cat : ${allCategories}" th:value="${cat}" th:text="${cat.displayName}"></option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="height: 3rem; padding: 0 1.5rem;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="container stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number" th:text="${totalItemsCount}">0</div>
+                        <div class="stat-label">Total Reports</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-magnifying-glass"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number" th:text="${totalLostCount}">0</div>
+                        <div class="stat-label">Active Lost Items</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number" th:text="${totalFoundCount}">0</div>
+                        <div class="stat-label">Reported Found</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number" th:text="${totalResolvedCount}">0</div>
+                        <div class="stat-label">Successfully Returned</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Action Callouts -->
+        <section class="container">
+            <div class="actions-banner">
+                <div class="action-box lost">
+                    <div class="action-box-content">
+                        <h3>Missing Something Valuable?</h3>
+                        <p>Report what you lost with photos and location details to alert the community.</p>
+                    </div>
+                    <a th:href="@{/items/report/lost}" class="btn btn-lost">
+                        <i class="fas fa-bullhorn"></i> Report Lost
+                    </a>
+                </div>
+
+                <div class="action-box found">
+                    <div class="action-box-content">
+                        <h3>Found an Item in Public?</h3>
+                        <p>Post a found report and verify claims securely without revealing private info.</p>
+                    </div>
+                    <a th:href="@{/items/report/found}" class="btn btn-found">
+                        <i class="fas fa-hand-holding-hand"></i> Report Found
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Lost Items Section -->
+        <section class="container" style="margin-bottom: 3.5rem;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Recently Reported Lost Items</h2>
+                    <p class="section-desc">Keep an eye out for these items in your local area</p>
+                </div>
+                <a th:href="@{/lost-items}" class="btn btn-outline btn-sm">
+                    View All Lost Items <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div th:if="${recentLostItems.empty}" class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3>No lost items reported yet</h3>
+                <p>Have you lost an item recently? Submit a report so others can help you find it.</p>
+                <a th:href="@{/items/report/lost}" class="btn btn-primary">Report a Lost Item</a>
+            </div>
+
+            <div th:unless="${recentLostItems.empty}" class="items-grid">
+                <div th:each="item : ${recentLostItems}" class="item-card">
+                    <div class="item-card-media">
+                        <img th:if="${item.imageUrl != null and !item.imageUrl.empty}"
+                             th:src="${item.imageUrl}"
+                             th:alt="${item.title}"
+                             class="item-card-img" />
+                        <div th:unless="${item.imageUrl != null and !item.imageUrl.empty}" class="item-card-placeholder">
+                            <i th:class="${item.category.iconClass}"></i>
+                            <span th:text="${item.category.displayName}">Category</span>
+                        </div>
+                        <span class="item-badge-type badge-lost">Lost</span>
+                        <span class="item-badge-status"
+                              th:classappend="${item.status.name() == 'OPEN' ? 'status-open' : (item.status.name() == 'CLAIM_PENDING' ? 'status-claim-pending' : 'status-resolved')}"
+                              th:text="${item.status.displayName}">Status</span>
+                    </div>
+
+                    <div class="item-card-body">
+                        <span class="item-category-tag">
+                            <i th:class="${item.category.iconClass}"></i>
+                            <span th:text="${item.category.displayName}">Category</span>
+                        </span>
+                        <h3 class="item-card-title" th:text="${item.title}">Item Title</h3>
+                        <p class="item-card-desc" th:text="${item.description}">Item Description</p>
+
+                        <div class="item-meta-list">
+                            <div class="item-meta-row">
+                                <i class="fas fa-location-dot"></i>
+                                <span th:text="${item.location}">Location</span>
+                            </div>
+                            <div class="item-meta-row">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Lost on <strong th:text="${#temporals.format(item.eventDate, 'MMM dd, yyyy')}">Date</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-card-footer">
+                        <span style="font-size: 0.8rem; color: var(--slate-500);">
+                            <i class="fas fa-user-circle"></i> <span th:text="${item.user.fullName}">User</span>
+                        </span>
+                        <a th:href="@{/items/{id}(id=${item.id})}" class="btn btn-outline btn-sm">
+                            View Details <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Found Items Section -->
+        <section class="container" style="margin-bottom: 3.5rem;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Recently Reported Found Items</h2>
+                    <p class="section-desc">Are one of these items yours? Submit a claim to recover it</p>
+                </div>
+                <a th:href="@{/found-items}" class="btn btn-outline btn-sm">
+                    View All Found Items <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div th:if="${recentFoundItems.empty}" class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h3>No found items reported yet</h3>
+                <p>Did you pick up a misplaced item? Report it here so the rightful owner can find it.</p>
+                <a th:href="@{/items/report/found}" class="btn btn-primary">Report a Found Item</a>
+            </div>
+
+            <div th:unless="${recentFoundItems.empty}" class="items-grid">
+                <div th:each="item : ${recentFoundItems}" class="item-card">
+                    <div class="item-card-media">
+                        <img th:if="${item.imageUrl != null and !item.imageUrl.empty}"
+                             th:src="${item.imageUrl}"
+                             th:alt="${item.title}"
+                             class="item-card-img" />
+                        <div th:unless="${item.imageUrl != null and !item.imageUrl.empty}" class="item-card-placeholder">
+                            <i th:class="${item.category.iconClass}"></i>
+                            <span th:text="${item.category.displayName}">Category</span>
+                        </div>
+                        <span class="item-badge-type badge-found">Found</span>
+                        <span class="item-badge-status"
+                              th:classappend="${item.status.name() == 'OPEN' ? 'status-open' : (item.status.name() == 'CLAIM_PENDING' ? 'status-claim-pending' : 'status-resolved')}"
+                              th:text="${item.status.displayName}">Status</span>
+                    </div>
+
+                    <div class="item-card-body">
+                        <span class="item-category-tag">
+                            <i th:class="${item.category.iconClass}"></i>
+                            <span th:text="${item.category.displayName}">Category</span>
+                        </span>
+                        <h3 class="item-card-title" th:text="${item.title}">Item Title</h3>
+                        <p class="item-card-desc" th:text="${item.description}">Item Description</p>
+
+                        <div class="item-meta-list">
+                            <div class="item-meta-row">
+                                <i class="fas fa-location-dot"></i>
+                                <span th:text="${item.location}">Location</span>
+                            </div>
+                            <div class="item-meta-row">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Found on <strong th:text="${#temporals.format(item.eventDate, 'MMM dd, yyyy')}">Date</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-card-footer">
+                        <span style="font-size: 0.8rem; color: var(--slate-500);">
+                            <i class="fas fa-user-circle"></i> <span th:text="${item.user.fullName}">User</span>
+                        </span>
+                        <a th:href="@{/items/{id}(id=${item.id})}" class="btn btn-outline btn-sm">
+                            View Details <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="container" style="margin-bottom: 4rem;">
+            <div style="background-color: var(--white); border-radius: var(--radius-lg); padding: 3rem 2rem; border: 1px solid var(--slate-200); box-shadow: var(--shadow-sm); text-align: center;">
+                <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--slate-900); margin-bottom: 0.5rem;">How Return Hub Protects You</h2>
+                <p style="color: var(--slate-600); max-width: 600px; margin: 0 auto 2.5rem auto;">
+                    We created a modern, safe workflow so you never have to post your private phone number or home address on public forums.
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; text-align: left;">
+                    <div style="padding: 1.5rem; background-color: var(--slate-50); border-radius: var(--radius); border: 1px solid var(--slate-200);">
+                        <div style="width: 2.75rem; height: 2.75rem; background-color: var(--primary-100); color: var(--primary-700); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem;">1</div>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem;">Report Safely</h4>
+                        <p style="font-size: 0.9rem; color: var(--slate-600); line-height: 1.5;">Describe your lost or found item. Your contact phone and email are securely encrypted and shielded from public viewers.</p>
+                    </div>
+
+                    <div style="padding: 1.5rem; background-color: var(--slate-50); border-radius: var(--radius); border: 1px solid var(--slate-200);">
+                        <div style="width: 2.75rem; height: 2.75rem; background-color: var(--primary-100); color: var(--primary-700); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem;">2</div>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem;">Verify Ownership</h4>
+                        <p style="font-size: 0.9rem; color: var(--slate-600); line-height: 1.5;">Claimants submit private proof of ownership (serial numbers, unique stickers, passwords, or hidden marks) for review.</p>
+                    </div>
+
+                    <div style="padding: 1.5rem; background-color: var(--slate-50); border-radius: var(--radius); border: 1px solid var(--slate-200);">
+                        <div style="width: 2.75rem; height: 2.75rem; background-color: var(--primary-100); color: var(--primary-700); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem;">3</div>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem;">Reunite Directly</h4>
+                        <p style="font-size: 0.9rem; color: var(--slate-600); line-height: 1.5;">Upon approval, mutual contact details are securely revealed so finder and owner can arrange a safe handoff.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

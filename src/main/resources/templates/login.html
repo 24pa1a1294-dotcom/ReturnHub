@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Log In')}"></head>
+
+<body>
+
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card" style="max-width: 440px; margin-top: 3.5rem;">
+                <div class="form-header">
+                    <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 3.25rem; height: 3.25rem; font-size: 1.5rem;">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h2>Welcome Back</h2>
+                    <p>Log in to your Return Hub account to report items and track claims.</p>
+                </div>
+
+                <!-- Error Alert -->
+                <div th:if="${param.error}" class="alert alert-danger" style="margin-bottom: 1.25rem;">
+                    <div>
+                        <i class="fas fa-circle-exclamation"></i>
+                        <span>Invalid email or password. Please try again.</span>
+                    </div>
+                </div>
+
+                <form th:action="@{/login}" method="post">
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <div class="search-field">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" name="email" class="search-input" placeholder="you@example.com" required autofocus />
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="search-field">
+                            <i class="fas fa-key"></i>
+                            <input type="password" id="password" name="password" class="search-input" placeholder="••••••••" required />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; height: 2.85rem; margin-top: 1rem;">
+                        <i class="fas fa-right-to-bracket"></i> Log In
+                    </button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--slate-200); font-size: 0.885rem; color: var(--slate-600);">
+                    Don't have an account yet?
+                    <a th:href="@{/register}" style="font-weight: 700;">Register now</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

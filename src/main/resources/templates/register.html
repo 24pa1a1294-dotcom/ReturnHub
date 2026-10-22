@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Create Account')}"></head>
+
+<body>
+
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card" style="max-width: 500px; margin-top: 3rem;">
+                <div class="form-header">
+                    <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 3.25rem; height: 3.25rem; font-size: 1.5rem;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h2>Create an Account</h2>
+                    <p>Join Return Hub to report items, submit ownership claims, and help reunite lost belongings.</p>
+                </div>
+
+                <form th:action="@{/register}" th:object="${userDto}" method="post">
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        <label class="form-label" for="fullName">Full Name <span class="required">*</span></label>
+                        <input type="text" id="fullName" th:field="*{fullName}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''"
+                               placeholder="e.g. Sarah Connor" required />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Name error</div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" th:field="*{email}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+                               placeholder="you@example.com" required />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email error</div>
+                        <div class="form-hint">Used for signing in and secure handoff notifications.</div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Phone Number (Optional)</label>
+                        <input type="tel" id="phone" th:field="*{phone}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid' : ''"
+                               placeholder="+1 (555) 000-0000" />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Phone error</div>
+                        <div class="form-hint">Kept private. Will pre-fill your reports and claims for convenience.</div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password <span class="required">*</span></label>
+                        <input type="password" id="password" th:field="*{password}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
+                               placeholder="At least 6 characters" required />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">Confirm Password <span class="required">*</span></label>
+                        <input type="password" id="confirmPassword" th:field="*{confirmPassword}"
+                               class="form-control"
+                               th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''"
+                               placeholder="Repeat password" required />
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">Password match error</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; height: 2.85rem; margin-top: 1rem;">
+                        <i class="fas fa-arrow-right"></i> Register Account
+                    </button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--slate-200); font-size: 0.885rem; color: var(--slate-600);">
+                    Already registered?
+                    <a th:href="@{/login}" style="font-weight: 700;">Log in here</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head(${pageTitle})}"></head>
+
+<body>
+
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="main-content">
+        <div class="container" style="margin-top: 2rem;">
+            <!-- Header section -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
+                        <span th:if="${itemType != null and itemType.name() == 'LOST'}" class="item-badge-type badge-lost" style="position: static;">Lost Directory</span>
+                        <span th:if="${itemType != null and itemType.name() == 'FOUND'}" class="item-badge-type badge-found" style="position: static;">Found Directory</span>
+                        <span th:if="${itemType == null}" class="item-badge-type" style="position: static; background-color: var(--primary-100); color: var(--primary-800);">Catalog</span>
+                        <h1 class="section-title" style="margin: 0;" th:text="${pageTitle}">Items Directory</h1>
+                    </div>
+                    <p class="section-desc" th:if="${itemType != null and itemType.name() == 'LOST'}">
+                        Browse items reported missing. If you have found any of these items, please view details to contact or assist.
+                    </p>
+                    <p class="section-desc" th:if="${itemType != null and itemType.name() == 'FOUND'}">
+                        Browse items that have been found and reported. If one belongs to you, click View Details to file an ownership claim.
+                    </p>
+                    <p class="section-desc" th:if="${itemType == null}">
+                        Browse all search results across our lost and found database.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <a th:href="@{/items/report/lost}" class="btn btn-lost btn-sm">
+                        <i class="fas fa-plus"></i> Report Lost
+                    </a>
+                    <a th:href="@{/items/report/found}" class="btn btn-found btn-sm">
+                        <i class="fas fa-plus"></i> Report Found
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <form th:action="${itemType != null ? (itemType.name() == 'LOST' ? '/lost-items' : '/found-items') : '/search'}" method="get" class="filter-form">
+                    <div class="search-field">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="keyword" th:value="${keyword}" class="search-input" placeholder="Search by title, location, description...">
+                    </div>
+
+                    <div class="search-field">
+                        <i class="fas fa-tag"></i>
+                        <select name="category" class="search-select">
+                            <option value="">All Categories</option>
+                            <option th:each="cat : ${allCategories}"
+                                    th:value="${cat}"
+                                    th:text="${cat.displayName}"
+                                    th:selected="${selectedCategory == cat}"></option>
+                        </select>
+                    </div>
+
+                    <div class="search-field">
+                        <i class="fas fa-circle-dot"></i>
+                        <select name="status" class="search-select">
+                            <option value="">All Statuses</option>
+                            <option value="OPEN" th:selected="${selectedStatus != null and selectedStatus.name() == 'OPEN'}">Open</option>
+                            <option value="CLAIM_PENDING" th:selected="${selectedStatus != null and selectedStatus.name() == 'CLAIM_PENDING'}">Claim Pending</option>
+                            <option value="RESOLVED" th:selected="${selectedStatus != null and selectedStatus.name() == 'RESOLVED'}">Resolved</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="height: 3rem;">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+
+                    <a th:href="${itemType != null ? (itemType.name() == 'LOST' ? '/lost-items' : '/found-items') : '/search'}"
+                       class="btn btn-outline" style="height: 3rem;" title="Reset filters">
+                        <i class="fas fa-rotate-left"></i> Reset
+                    </a>
+                </form>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${items.empty}" class="empty-state">
+                <i class="fas fa-magnifying-glass"></i>
+                <h3>No items found</h3>
+                <p>We couldn't find any reports matching your search and filter criteria. Try adjusting your search query or reset the filters.</p>
+                <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                    <a th:href="${itemType != null ? (itemType.name() == 'LOST' ? '/lost-items' : '/found-items') : '/search'}" class="btn btn-secondary">
+                        Clear Filters
+                    </a>
+                    <a th:if="${itemType != null and itemType.name() == 'LOST'}" th:href="@{/items/report/lost}" class="btn btn-primary">
+                        Report a Lost Item
+                    </a>
+                    <a th:if="${itemType != null and itemType.name() == 'FOUND'}" th:href="@{/items/report/found}" class="btn btn-primary">
+                        Report a Found Item
+                    </a>
+                </div>
+            </div>
+
+            <!-- Items Grid -->
+            <div th:unless="${items.empty}" class="items-grid">
+                <div th:each="item : ${items}" class="item-card">
+                    <div class="item-card-media">
+                        <img th:if="${item.imageUrl != null and !item.imageUrl.empty}"
+                             th:src="${item.imageUrl}"
+                             th:alt="${item.title}"
+                             class="item-card-img" />
+                        <div th:unless="${item.imageUrl != null and !item.imageUrl.empty}" class="item-card-placeholder">
+                            <i th:class="${item.category.iconClass}"></i>
+                            <span th:text="${item.category.displayName}">Category</span>
+                        </div>
+                        <span class="item-badge-type"
+                              th:classappend="${item.type.name() == 'LOST' ? 'badge-lost' : 'badge-found'}"
+                              th:text="${item.type.displayName}">Type</span>
+                        <span class="item-badge-status"
+                              th:classappend="${item.status.name() == 'OPEN' ? 'status-open' : (item.status.name() == 'CLAIM_PENDING' ? 'status-claim-pending' : 'status-resolved')}"
+                              th:text="${item.status.displayName}">Status</span>
+                    </div>
+
+                    <div class="item-card-body">
+                        <span class="item-category-tag">
+                            <i th:class="${item.category.iconClass}"></i>
+                            <span th:text="${item.category.displayName}">Category</span>
+                        </span>
+                        <h3 class="item-card-title" th:text="${item.title}">Item Title</h3>
+                        <p class="item-card-desc" th:text="${item.description}">Item Description</p>
+
+                        <div class="item-meta-list">
+                            <div class="item-meta-row">
+                                <i class="fas fa-location-dot"></i>
+                                <span th:text="${item.location}">Location</span>
+                            </div>
+                            <div class="item-meta-row">
+                                <i class="fas fa-calendar-day"></i>
+                                <span><span th:text="${item.type.name() == 'LOST' ? 'Lost on' : 'Found on'}">Date</span> <strong th:text="${#temporals.format(item.eventDate, 'MMM dd, yyyy')}">Date</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-card-footer">
+                        <span style="font-size: 0.8rem; color: var(--slate-500);">
+                            <i class="fas fa-user-circle"></i> <span th:text="${item.user.fullName}">User</span>
+                        </span>
+                        <a th:href="@{/items/{id}(id=${item.id})}" class="btn btn-outline btn-sm">
+                            View Details <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>
